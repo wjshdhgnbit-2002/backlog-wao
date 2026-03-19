@@ -97,22 +97,29 @@ export const handler = async (event) => {
 
 // Genre/tag groups for matching
 const GENRE_MAP = {
-  story:       ['rpg', 'adventure', 'visual novel', 'story', 'narrative', 'walking simulator', 'point-and-click'],
-  action:      ['action', 'shooter', 'fighting', 'hack and slash', 'beat \'em up', 'fps', 'third-person shooter'],
-  puzzle:      ['puzzle', 'strategy', 'turn-based', 'tower defense', 'management', 'city builder', 'simulation'],
-  casual:      ['casual', 'indie', 'relaxing', 'farming', 'life simulation', 'cozy', 'walking simulator'],
-  horror:      ['horror', 'survival horror', 'psychological horror', 'dark', 'thriller'],
-  multiplayer: ['multiplayer', 'co-op', 'mmo', 'online', 'battle royale', 'party'],
-  indie:       ['indie', 'pixel art', 'retro', 'atmospheric', 'artsy', 'experimental'],
-  platformer:  ['platformer', 'platform', 'metroidvania', 'side-scroller', 'run and gun'],
+  story:       ['rpg', 'adventure', 'visual novel', 'story', 'narrative', 'walking simulator', 'point-and-click', 'interactive fiction'],
+  action:      ['action', 'shooter', 'fighting', 'hack and slash', "beat 'em up", 'fps', 'third-person shooter', 'action-adventure'],
+  puzzle:      ['puzzle', 'strategy', 'turn-based', 'tower defense', 'management', 'city builder', 'simulation', 'logic'],
+  casual:      ['casual', 'relaxing', 'farming', 'life simulation', 'cozy', 'wholesome', 'cute', 'colorful', 'walking simulator', 'peaceful', 'family friendly'],
+  mystery:     ['mystery', 'detective', 'noir', 'investigation', 'crime', 'whodunit', 'thriller', 'hidden object', 'point-and-click'],
+  horror:      ['horror', 'survival horror', 'psychological horror', 'dark', 'thriller', 'gore', 'scary'],
+  multiplayer: ['multiplayer', 'co-op', 'mmo', 'online', 'battle royale', 'party', 'local multiplayer'],
+  indie:       ['indie', 'pixel art', 'retro', 'atmospheric', 'artsy', 'experimental', 'hand-drawn'],
+  platformer:  ['platformer', 'platform', 'metroidvania', 'side-scroller', 'run and gun', '2d platformer'],
 };
+
+// Tags that are INCOMPATIBLE with chill/cozy moods — used for penalizing
+const DARK_TAGS = ['horror', 'psychological horror', 'survival horror', 'gore', 'dark', 'violent', 'disturbing', 'mature', 'blood', 'scary', 'psychological', 'dark humor', 'murder'];
+
+// Tags that are INCOMPATIBLE with high-energy moods
+const CHILL_TAGS = ['relaxing', 'casual', 'cozy', 'wholesome', 'peaceful', 'cute', 'farming', 'life simulation'];
 
 // Energy → preferred genres
 const ENERGY_GENRES = {
-  exhausted: ['casual', 'relaxing', 'cozy', 'farming', 'life simulation', 'walking simulator', 'puzzle', 'indie'],
-  low:       ['casual', 'indie', 'puzzle', 'adventure', 'story', 'visual novel', 'relaxing'],
-  medium:    ['adventure', 'rpg', 'platformer', 'strategy', 'simulation', 'puzzle'],
-  high:      ['action', 'rpg', 'adventure', 'platformer', 'shooter', 'fighting'],
+  exhausted: ['casual', 'relaxing', 'cozy', 'farming', 'life simulation', 'walking simulator', 'puzzle', 'wholesome', 'peaceful', 'cute'],
+  low:       ['casual', 'indie', 'puzzle', 'adventure', 'story', 'visual novel', 'relaxing', 'mystery'],
+  medium:    ['adventure', 'rpg', 'platformer', 'strategy', 'simulation', 'puzzle', 'mystery'],
+  high:      ['action', 'rpg', 'adventure', 'platformer', 'shooter', 'fighting', 'action-adventure'],
   hyped:     ['action', 'shooter', 'fighting', 'fps', 'hack and slash', 'battle royale', 'horror'],
 };
 
@@ -130,20 +137,42 @@ function scoreGame(game, mood) {
   const genres = (game.genres || []).map((g) => g.toLowerCase());
   const tags   = (game.tags   || []).map((t) => t.toLowerCase());
   const all    = [...genres, ...tags];
+  const vibes  = Array.isArray(mood.vibes) ? mood.vibes : [];
 
   // ── Vibe matching (up to 40 pts) ──
-  const vibes = Array.isArray(mood.vibes) ? mood.vibes : [];
   for (const vibe of vibes) {
     const keywords = GENRE_MAP[vibe] || [];
     for (const kw of keywords) {
       if (all.some((t) => t.includes(kw))) {
         score += 10;
-        break; // don't double-count same vibe
+        break;
       }
     }
   }
 
-  // ── Energy matching (up to 30 pts) ──
+  // ── Hard penalties for vibe mismatches ──
+  // Cozy/casual requested but game is dark/horror → big penalty
+  const wantsChill = vibes.includes('casual') || mood.energy === 'exhausted' || mood.energy === 'low';
+  const wantsHorror = vibes.includes('horror');
+  if (wantsChill && !wantsHorror) {
+    const hasDarkTags = DARK_TAGS.some((dt) => all.some((t) => t.includes(dt)));
+    if (hasDarkTags) score -= 40;
+  }
+
+  // High energy / hyped but game is ultra-chill → penalty
+  const wantsIntense = mood.energy === 'hyped' || mood.energy === 'high';
+  if (wantsIntense && !vibes.includes('casual')) {
+    const isTooChill = CHILL_TAGS.some((ct) => all.some((t) => t.includes(ct)));
+    if (isTooChill) score -= 20;
+  }
+
+  // Mystery requested but game has horror dark tags and horror NOT also requested → mild penalty
+  if (vibes.includes('mystery') && !wantsHorror) {
+    const hasSurvivalHorror = all.some((t) => t.includes('survival horror') || t.includes('gore'));
+    if (hasSurvivalHorror) score -= 20;
+  }
+
+  // ── Energy matching (up to 20 pts) ──
   const energyGenres = ENERGY_GENRES[mood.energy] || [];
   for (const eg of energyGenres) {
     if (all.some((t) => t.includes(eg))) {
@@ -153,14 +182,12 @@ function scoreGame(game, mood) {
   }
 
   // ── Time matching (up to 20 pts) ──
-  // Use RAWG playtime estimate if available; otherwise use Steam playtime as proxy
   const [minH, maxH] = TIME_RANGE[mood.time] || [0, 999];
   const avgPlaytime  = game.rawgPlaytime || null;
   if (avgPlaytime !== null) {
     if (avgPlaytime >= minH && avgPlaytime <= maxH) score += 20;
     else if (Math.abs(avgPlaytime - (minH + maxH) / 2) < 5) score += 10;
   } else {
-    // No RAWG playtime — give neutral points so game isn't unfairly penalised
     score += 10;
   }
 
@@ -239,14 +266,17 @@ function buildBlurb(game, mood) {
 
 function pickEmoji(game, mood) {
   const genres = (game.genres || []).map((g) => g.toLowerCase());
-  if (genres.some((g) => g.includes('horror')))      return '👻';
-  if (genres.some((g) => g.includes('rpg')))         return '⚔️';
-  if (genres.some((g) => g.includes('puzzle')))      return '🧩';
-  if (genres.some((g) => g.includes('casual')))      return '🌸';
-  if (genres.some((g) => g.includes('action')))      return '🔥';
-  if (genres.some((g) => g.includes('adventure')))   return '🗺️';
-  if (genres.some((g) => g.includes('strategy')))    return '🧠';
-  if (genres.some((g) => g.includes('simulation')))  return '🌿';
+  const tags   = (game.tags   || []).map((t) => t.toLowerCase());
+  const all    = [...genres, ...tags];
+  if (all.some((g) => g.includes('horror')))                return '👻';
+  if (all.some((g) => g.includes('mystery') || g.includes('detective') || g.includes('noir'))) return '🔍';
+  if (all.some((g) => g.includes('rpg')))                   return '⚔️';
+  if (all.some((g) => g.includes('puzzle')))                return '🧩';
+  if (all.some((g) => g.includes('cozy') || g.includes('casual') || g.includes('wholesome'))) return '🌸';
+  if (all.some((g) => g.includes('action')))                return '🔥';
+  if (all.some((g) => g.includes('adventure')))             return '🗺️';
+  if (all.some((g) => g.includes('strategy')))              return '🧠';
+  if (all.some((g) => g.includes('simulation')))            return '🌿';
   if (mood.energy === 'exhausted' || mood.energy === 'low') return '🌙';
   if (mood.energy === 'hyped' || mood.energy === 'high')    return '⚡';
   return '✨';

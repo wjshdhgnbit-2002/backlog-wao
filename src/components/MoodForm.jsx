@@ -22,6 +22,7 @@ const VIBE_OPTIONS = [
   { value: 'action',      emoji: '⚔️', label: 'Action' },
   { value: 'puzzle',      emoji: '🧩', label: 'Puzzle / Strategy' },
   { value: 'casual',      emoji: '🌿', label: 'Casual / Chill' },
+  { value: 'mystery',     emoji: '🔍', label: 'Mystery' },
   { value: 'horror',      emoji: '👻', label: 'Horror' },
   { value: 'multiplayer', emoji: '👯', label: 'Multiplayer' },
   { value: 'indie',       emoji: '🎨', label: 'Indie / Artsy' },
