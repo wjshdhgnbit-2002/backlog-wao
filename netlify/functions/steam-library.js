@@ -28,7 +28,7 @@ export const handler = async (event) => {
 
   // Steam ID can come from env var (personal deployment) or query param (flexible use)
   const params = event.queryStringParameters || {};
-  const steamId = configuredSteamId || params.steamId;
+  const steamId = params.steamId || configuredSteamId;
 
   if (!steamId) {
     return {
