@@ -1,4 +1,4 @@
-export default function Header({ gameCount = null }) {
+export default function Header({ gameCount = null, onSwitch = null }) {
   return (
     <header className="relative z-10 text-center py-12 px-4">
       {/* Top sparkle row */}
@@ -23,14 +23,26 @@ export default function Header({ gameCount = null }) {
         Your magical game discovery fairy
       </p>
 
-      {/* Game count badge */}
+      {/* Game count badge + switch button */}
       {gameCount !== null && (
-        <div className="mt-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full
-                        bg-white/60 border border-wao-lavender/40 text-sm text-slate-600">
-          <span className="text-wao-lav-deep">🎮</span>
-          <span>
-            <span className="font-semibold text-wao-lav-deep">{gameCount}</span> games in your library
-          </span>
+        <div className="mt-4 flex items-center justify-center gap-3 flex-wrap">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full
+                          bg-white/60 border border-wao-lavender/40 text-sm text-slate-600">
+            <span className="text-wao-lav-deep">🎮</span>
+            <span>
+              <span className="font-semibold text-wao-lav-deep">{gameCount}</span> games in your library
+            </span>
+          </div>
+          {onSwitch && (
+            <button
+              onClick={onSwitch}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs
+                         font-medium text-wao-lav-deep border border-wao-lavender/40
+                         bg-white/60 hover:bg-wao-lav-light transition-all duration-200"
+            >
+              🔄 Switch library
+            </button>
+          )}
         </div>
       )}
 

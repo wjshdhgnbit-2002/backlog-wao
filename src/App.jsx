@@ -117,7 +117,10 @@ export default function App() {
       <SparkleBackground count={24} />
 
       {/* Header — shown on all screens */}
-      <Header gameCount={view === 'LIBRARY' || view === 'RESULTS' ? games.length : null} />
+      <Header
+        gameCount={view === 'LIBRARY' || view === 'RESULTS' ? games.length : null}
+        onSwitch={view === 'LIBRARY' || view === 'RESULTS' ? () => { setView('CONNECT'); setGames([]); setRecommendations([]) } : null}
+      />
 
       {/* ── Main content ── */}
       <main>
