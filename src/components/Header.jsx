@@ -12,15 +12,18 @@ export default function Header({ gameCount = null, onSwitch = null }) {
 
       {/* Logo / Title */}
       <div className="animate-float">
-        <h1 className="font-display text-5xl md:text-6xl font-bold text-magical leading-tight mb-2">
-          Backlog Wao
+        <h1
+          className="text-magical leading-snug mb-3"
+          style={{ fontFamily: '"Press Start 2P", monospace', fontSize: 'clamp(1rem, 4vw, 1.75rem)' }}
+        >
+          chip through<br />your backlog
         </h1>
         <p className="text-2xl" aria-hidden="true">✨</p>
       </div>
 
       {/* Subtitle */}
-      <p className="mt-3 text-wao-lav-deep font-body text-lg font-light tracking-wide italic">
-        Your magical game discovery fairy
+      <p className="mt-3 text-wao-lav-deep font-body text-base font-light tracking-wide italic">
+        your magical game discovery fairy ✦
       </p>
 
       {/* Game count badge + switch button */}
