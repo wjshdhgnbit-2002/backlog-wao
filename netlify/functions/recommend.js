@@ -98,16 +98,12 @@ export const handler = async (event) => {
 async function enrichWithRawg(games, rawgKey) {
   const enriched = [];
 
-  // Process in batches of 8 to respect rate limits
-  const batchSize = 8;
-  for (let i = 0; i < games.length; i += batchSize) {
-    const batch = games.slice(i, i + batchSize);
-    const results = await Promise.allSettled(
-      batch.map((game) => fetchRawgGame(game, rawgKey))
-    );
-    for (const r of results) {
-      if (r.status === 'fulfilled') enriched.push(r.value);
-    }
+  // Run all RAWG lookups in parallel for speed
+  const results = await Promise.allSettled(
+    games.map((game) => fetchRawgGame(game, rawgKey))
+  );
+  for (const r of results) {
+    if (r.status === 'fulfilled') enriched.push(r.value);
   }
 
   return enriched;
