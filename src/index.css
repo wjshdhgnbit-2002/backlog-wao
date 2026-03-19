@@ -1,0 +1,214 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Global base ──────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply font-body text-slate-700 bg-wao-cream;
+    background: linear-gradient(160deg, #FFF5FB 0%, #F5EEFF 55%, #FFF0FA 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-wao-lavender rounded-full;
+    opacity: 0.6;
+  }
+}
+
+/* ── Utility components ───────────────────────────────── */
+@layer components {
+
+  /* Magical gradient text */
+  .text-magical {
+    background: linear-gradient(135deg, #A78BFA 0%, #C9A8E0 40%, #FFB7C5 80%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Glass card */
+  .card-glass {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(201, 168, 224, 0.25);
+    @apply rounded-xl3 shadow-card transition-all duration-300;
+  }
+
+  .card-glass:hover {
+    @apply shadow-card-hover;
+    border-color: rgba(201, 168, 224, 0.55);
+    transform: translateY(-3px);
+  }
+
+  /* Magic button */
+  .btn-magic {
+    background: linear-gradient(135deg, #C9A8E0 0%, #FFB7C5 100%);
+    @apply text-white font-semibold rounded-full px-6 py-3 transition-all duration-200 shadow-glow-lav;
+    letter-spacing: 0.02em;
+  }
+
+  .btn-magic:hover {
+    background: linear-gradient(135deg, #B894D4 0%, #F490A8 100%);
+    @apply shadow-glow-pink;
+    transform: translateY(-1px) scale(1.02);
+  }
+
+  .btn-magic:active {
+    transform: scale(0.98);
+  }
+
+  /* Secondary button */
+  .btn-ghost {
+    @apply border border-wao-lavender text-wao-lav-deep font-semibold rounded-full px-5 py-2.5
+           transition-all duration-200 bg-white/60;
+  }
+
+  .btn-ghost:hover {
+    @apply bg-wao-lav-light border-wao-lav-deep;
+  }
+
+  /* Chip / tag */
+  .chip {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium
+           bg-wao-lav-light text-wao-lav-deep border border-wao-lavender/40;
+  }
+
+  /* Input styles */
+  .input-magic {
+    @apply w-full px-4 py-3 rounded-xl border border-wao-lavender/40 bg-white/70
+           focus:outline-none focus:border-wao-lavender focus:ring-2 focus:ring-wao-lavender/20
+           font-body text-slate-700 placeholder-slate-400 transition-all duration-200;
+  }
+
+  /* Star decoration */
+  .star-deco {
+    @apply inline-block animate-sparkle select-none pointer-events-none;
+  }
+}
+
+/* ── Decorative star field ────────────────────────────── */
+.starfield {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.starfield .star {
+  position: absolute;
+  opacity: 0;
+  animation: twinkle var(--dur, 4s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+  font-size: var(--size, 14px);
+  color: var(--color, #C9A8E0);
+  user-select: none;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0;   transform: scale(0.6) rotate(0deg); }
+  50%       { opacity: 0.7; transform: scale(1)   rotate(20deg); }
+}
+
+/* ── Game card cover image ────────────────────────────── */
+.game-cover {
+  aspect-ratio: 460 / 215;   /* Steam header image ratio */
+  object-fit: cover;
+  @apply w-full rounded-t-xl3 bg-wao-lav-light;
+}
+
+.game-cover-fallback {
+  @apply w-full rounded-t-xl3 bg-gradient-to-br from-wao-lav-light to-wao-pink-light
+         flex items-center justify-center;
+  aspect-ratio: 460 / 215;
+}
+
+/* ── Mood form option cards ───────────────────────────── */
+.mood-option {
+  @apply relative flex flex-col items-center gap-2 px-4 py-3 rounded-xl cursor-pointer
+         border border-wao-lavender/30 bg-white/60 text-center
+         transition-all duration-200 select-none;
+}
+
+.mood-option:hover {
+  @apply bg-wao-lav-light border-wao-lavender shadow-card;
+  transform: translateY(-2px);
+}
+
+.mood-option.selected {
+  @apply bg-wao-lav-light border-wao-lavender shadow-glow-lav;
+  border-width: 2px;
+}
+
+.mood-option.selected::after {
+  content: '✓';
+  @apply absolute top-1.5 right-2 text-wao-lav-deep text-xs font-bold;
+}
+
+/* ── Loading shimmer on game cards ───────────────────── */
+.shimmer {
+  background: linear-gradient(
+    105deg,
+    rgba(255,255,255,0) 40%,
+    rgba(255,255,255,0.6) 50%,
+    rgba(255,255,255,0) 60%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s linear infinite;
+}
+
+/* ── Result card special glow ────────────────────────── */
+.result-card {
+  @apply card-glass;
+  border-color: rgba(201, 168, 224, 0.4);
+  box-shadow: 0 8px 40px rgba(201, 168, 224, 0.25);
+}
+
+.result-rank-badge {
+  @apply absolute -top-3 -left-3 w-9 h-9 rounded-full flex items-center justify-center
+         font-display font-bold text-white text-sm shadow-glow-lav;
+  background: linear-gradient(135deg, #A78BFA, #C9A8E0);
+}
+
+/* ── Floating recommend button ───────────────────────── */
+.fab-recommend {
+  @apply fixed bottom-8 right-8 z-40 flex items-center gap-2
+         btn-magic text-base shadow-glow-lav px-7 py-4;
+  animation: float 4s ease-in-out infinite;
+}
+
+/* ── Page transitions ─────────────────────────────────── */
+.page-enter {
+  animation: fadeUp 0.5s ease-out forwards;
+}
+
+/* ── Modal backdrop ───────────────────────────────────── */
+.modal-backdrop {
+  @apply fixed inset-0 z-50 flex items-center justify-center p-4;
+  background: rgba(100, 60, 140, 0.18);
+  backdrop-filter: blur(6px);
+}
+
+/* ── Rating stars ─────────────────────────────────────── */
+.rating-star {
+  color: #F9C74F;
+}
