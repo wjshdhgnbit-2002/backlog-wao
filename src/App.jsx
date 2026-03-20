@@ -46,27 +46,6 @@ export default function App() {
     }
   }, [])
 
-  // ── On page load: try env-var Steam ID automatically ─
-  // If STEAM_ID is set on the server, steam-library returns it without ?steamId param
-  const [autoTried, setAutoTried] = useState(false)
-  if (!autoTried) {
-    setAutoTried(true)
-    // Attempt silent load — will only succeed if server has STEAM_ID env var
-    ;(async () => {
-      try {
-        const res  = await fetch('/.netlify/functions/steam-library')
-        const data = await res.json()
-        if (res.ok && data.games?.length > 0) {
-          setGames(data.games)
-          setView('LIBRARY')
-        }
-        // If it fails silently, user stays on CONNECT screen
-      } catch {
-        // No STEAM_ID env var or network error — show connect form
-      }
-    })()
-  }
-
   // ── Toggle exclude ─────────────────────────────────
   const handleToggleExclude = useCallback((appId) => {
     setExcludedIds((prev) => {
